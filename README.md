@@ -29,13 +29,15 @@ A command-line utility for idempotent database user and access management.
 
 ## Usage
 
+### Step 1: Install `uv` Python Package Manager
+
 First, install `uv` python package manager and then add it to PATH by following instructions.
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-Sample Output
+#### Sample Output
 ```bash
 downloading uv 0.6.2 x86_64-unknown-linux-gnu
 no checksums to verify
@@ -51,11 +53,22 @@ To add $HOME/.local/bin to your PATH, either restart your shell or run:
 WARNING: The following commands are shadowed by other commands in your PATH: uv uvx
 ```
 
+### Step 2: Create a Database User
+
+Run the following command to create a database user:
+
 ```bash
 uv run manager.py create --db-type mongo --connection-string "mongodb://root:root@localhost/" --username test123 --password test123
-
-Output: Connection string: mongodb://test123:test123@localhost:27017
 ```
+
+#### Output
+```bash
+Connection string: mongodb://test123:test123@localhost:27017
+```
+
+### Step 3: Verify the Database User
+
+Run the following command to verify the database user:
 
 ```bash
 uv run manager.py verify --db-type mongo --connection-string mongodb://test123:test123@localhost:27017
