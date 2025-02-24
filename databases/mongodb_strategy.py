@@ -25,15 +25,21 @@ class MongoDBStrategy(DatabaseStrategy):
         except ConnectionFailure:
             return False
 
-    def create_user_and_db(self, username: str, password: str) -> None:
+    def ensure_user_and_db(self, username: str, password: str) -> None:
         try:
             db_name = self._generate_db_name(username)
-            self.client[db_name].command(
+            # Create user in admin database with specific permissions for their database
+            self.client.admin.command(
                 "createUser",
                 username,
                 pwd=password,
-                roles=[{"role": "dbOwner", "db": db_name}]
+                roles=[
+                    {"role": "readWrite", "db": db_name},
+                ]
             )
+            # Create the database by inserting a dummy document
+            self.client[db_name].test.insert_one({"_id": "init"})
+            self.client[db_name].test.delete_one({"_id": "init"})
         except OperationFailure as e:
             raise Exception(f"Failed to create user: {str(e)}")
 

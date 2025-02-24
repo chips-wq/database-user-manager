@@ -44,7 +44,7 @@ def main(db_type: str, connection_string: str, username: str, password: str):
     """Create database user and generate connection string."""
     try:
         strategy = DatabaseFactory.create(db_type, connection_string)
-        strategy.create_user_and_db(username, password)
+        strategy.ensure_user_and_db(username, password)
         user_conn_string = strategy.get_connection_string(username, password)
         click.echo(f"Connection string: {user_conn_string}")
     except Exception as e:
