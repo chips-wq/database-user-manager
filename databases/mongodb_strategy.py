@@ -1,38 +1,55 @@
 from pymongo import MongoClient
-from pymongo.errors import OperationFailure
+from pymongo.errors import ConnectionFailure, OperationFailure
 from .base import DatabaseStrategy
+from dataclasses import dataclass
+from urllib.parse import urlparse
+
+@dataclass
+class MongoDBConfig:
+    host: str
+    port: int
+    auth_database: str = 'admin'
 
 class MongoDBStrategy(DatabaseStrategy):
-    def __init__(self, admin_uri="mongodb://admin:password@localhost:27017/"):
-        self.client = MongoClient(admin_uri)
-        self.admin_db = self.client['admin']
-        self.host = "localhost"
-        self.port = 27017
+    def __init__(self, connection_string: str):
+        self.connection_string = connection_string
+        self.client = MongoClient(connection_string)
+        self.config = self._parse_connection_string(connection_string)
+        if not self.test_connection():
+            raise ConnectionFailure("Failed to connect to MongoDB")
 
-    def create_user_and_db(self, username, user_password):
-        db_name = f"db_{username}"
+    def test_connection(self) -> bool:
         try:
-            # Check if the user already exists.
-            user_info = self.admin_db.command("usersInfo", username)
-            if user_info.get("users"):
-                # If user exists, update the roles if necessary.
-                roles = user_info["users"][0].get("roles", [])
-                if not any(r.get("role") == "dbOwner" and r.get("db") == db_name for r in roles):
-                    self.admin_db.command("updateUser", username, roles=[{'role': 'dbOwner', 'db': db_name}])
-                    print(f"MongoDB: Updated user '{username}' with role 'dbOwner' on '{db_name}'.")
-                else:
-                    print(f"MongoDB: User '{username}' already exists with the correct role on '{db_name}'.")
-            else:
-                # Create new user if not exists.
-                self.admin_db.command(
-                    'createUser', username,
-                    pwd=user_password,
-                    roles=[{'role': 'dbOwner', 'db': db_name}]
-                )
-                print(f"MongoDB: User '{username}' created with access to database '{db_name}'.")
-        except OperationFailure as e:
-            print(f"MongoDB: Error creating or updating user: {e}")
+            self.client.admin.command('ping')
+            return True
+        except ConnectionFailure:
+            return False
 
-    def get_connection_string(self, username, user_password):
-        db_name = f"db_{username}"
-        return f"mongodb://{username}:{user_password}@{self.host}:{self.port}/{db_name}"
+    def create_user_and_db(self, username: str, password: str) -> None:
+        try:
+            db_name = self._generate_db_name(username)
+            self.client[db_name].command(
+                "createUser",
+                username,
+                pwd=password,
+                roles=[{"role": "dbOwner", "db": db_name}]
+            )
+        except OperationFailure as e:
+            raise Exception(f"Failed to create user: {str(e)}")
+
+    def get_connection_string(self, username: str, password: str) -> str:
+        return (f"mongodb://{username}:{password}@"
+                f"{self.config.host}:{self.config.port}")
+
+    def _generate_db_name(self, username: str) -> str:
+        return f"db_{username}"
+
+    def _parse_connection_string(self, connection_string: str) -> MongoDBConfig:
+        try:
+            parsed = urlparse(connection_string)
+            return MongoDBConfig(
+                host=parsed.hostname,
+                port=parsed.port or 27017
+            )
+        except Exception as e:
+            raise ValueError(f"Invalid connection string format: {str(e)}")
