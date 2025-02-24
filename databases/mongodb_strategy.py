@@ -3,6 +3,13 @@ from pymongo.errors import ConnectionFailure, OperationFailure
 from .base import DatabaseStrategy
 from dataclasses import dataclass
 from urllib.parse import urlparse
+import logging
+
+logger = logging.getLogger(__name__)
+
+# MongoDB specific error codes
+USER_ALREADY_EXISTS_CODE = 51003
+USER_ALREADY_EXISTS_MSG = "already exists"
 
 @dataclass
 class MongoDBConfig:
@@ -28,20 +35,47 @@ class MongoDBStrategy(DatabaseStrategy):
     def ensure_user_and_db(self, username: str, password: str) -> None:
         try:
             db_name = self._generate_db_name(username)
-            # Create user in admin database with specific permissions for their database
-            self.client.admin.command(
-                "createUser",
-                username,
-                pwd=password,
-                roles=[
-                    {"role": "readWrite", "db": db_name},
-                ]
-            )
-            # Create the database by inserting a dummy document
+            try:
+                logger.info(f"Creating new user '{username}' with database '{db_name}'")
+                # Create user in admin database with specific permissions
+                self.client.admin.command(
+                    "createUser",
+                    username,
+                    pwd=password,
+                    roles=[
+                        {"role": "readWrite", "db": db_name},
+                    ]
+                )
+                logger.info(f"Successfully created user '{username}'")
+            except OperationFailure as e:
+                if e.code == USER_ALREADY_EXISTS_CODE:
+                    # Additional validation of error message
+                    assert USER_ALREADY_EXISTS_MSG in str(e.details['errmsg']), \
+                        f"Unexpected error message for code {USER_ALREADY_EXISTS_CODE}: {e.details}"
+                    logger.info(f"User '{username}' already exists, updating password and roles")
+                    # Update existing user
+                    self.client.admin.command(
+                        "updateUser",
+                        username,
+                        pwd=password,
+                        roles=[
+                            {"role": "readWrite", "db": db_name},
+                        ]
+                    )
+                    logger.info(f"Successfully updated user '{username}'")
+                else:
+                    logger.error(f"Failed to manage user '{username}': {str(e)}")
+                    raise
+
+            # Ensure database exists
+            logger.debug(f"Ensuring database '{db_name}' exists")
             self.client[db_name].test.insert_one({"_id": "init"})
             self.client[db_name].test.delete_one({"_id": "init"})
+            logger.debug(f"Database '{db_name}' is ready")
+
         except OperationFailure as e:
-            raise Exception(f"Failed to create user: {str(e)}")
+            logger.error(f"Operation failed for user '{username}': {str(e)}")
+            raise Exception(f"Failed to ensure user: {str(e)}")
 
     def get_connection_string(self, username: str, password: str) -> str:
         return (f"mongodb://{username}:{password}@"
