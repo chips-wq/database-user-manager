@@ -24,7 +24,7 @@ A command-line utility for idempotent database user and access management.
 ## Supported Databases
 
 - ✅ MongoDB
-- 🔄 MySQL (coming soon)
+- ✅ MySQL
 - 🔄 PostgreSQL (coming soon)
 
 ## Usage
@@ -58,13 +58,25 @@ WARNING: The following commands are shadowed by other commands in your PATH: uv 
 Run the following command to create a database user:
 
 ```bash
-uv run manager.py create --db-type mongo --connection-string "mongodb://root:root@localhost/" --username test123 --password test123
+$ uv run manager.py create --db-type mongo --connection-string "mongodb://root:root@localhost/" --username test123 --password test123
+
+```
+### Step 2: Create a Database User
+
+Run the following command to create a database user:
+
+```bash
+$ uv run manager.py create --db-type mongo --connection-string "mongodb://root:root@localhost/" --username test123 --password test123
 ```
 
 #### Output
 ```bash
 Connection string: mongodb://test123:test123@localhost:27017
 ```
+
+This creates both the `test123` user and the `db_test123` database, giving the user full access to this database. 
+
+**For a certain `username` we always create `db_username`.**
 
 ### Step 3: Verify the Database User
 

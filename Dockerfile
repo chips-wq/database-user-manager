@@ -33,7 +33,8 @@ ENTRYPOINT [ "uv", "run", "manager.py" ]
 CMD ["--help"]
 
 # In order to run the script with arguments use the following command
-# docker run --network db_network <image_name> <arg1> <arg2> <arg3> ... <argN>
+# docker run --rm --network db_network <image_name> <arg1> <arg2> <arg3> ... <argN>
 
 # You can check connections to different databases by doing
+# docker run -it --rm --network db_network <image_name> verify
 

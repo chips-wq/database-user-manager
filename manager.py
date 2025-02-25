@@ -8,6 +8,8 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 
+SUPPORTED_DATABASES = ['mongo', 'mysql']
+
 @click.group()
 def cli():
     """Database management utilities."""
@@ -16,7 +18,7 @@ def cli():
 @cli.command(name='create')
 @click.option(
     '--db-type',
-    type=click.Choice(['mongo'], case_sensitive=False),
+    type=click.Choice(SUPPORTED_DATABASES, case_sensitive=False),
     prompt='Database type',
     help='Type of database to configure (mongo)'
 )
@@ -51,7 +53,7 @@ def create_user(db_type: str, connection_string: str, username: str, password: s
 @cli.command(name='verify')
 @click.option(
     '--db-type',
-    type=click.Choice(['mongo'], case_sensitive=False),
+    type=click.Choice(SUPPORTED_DATABASES, case_sensitive=False),
     prompt='Database type',
     help='Type of database to verify connection (mongo)'
 )
