@@ -73,3 +73,53 @@ Run the following command to verify the database user:
 ```bash
 uv run manager.py verify --db-type mongo --connection-string mongodb://test123:test123@localhost:27017
 ```
+
+# Using in a Docker Swarm environment
+
+### Step 1: Verify Database Network
+First, ensure there exists an attachable overlay network for databases:
+
+```bash
+$ docker network ls | grep db_network
+fvlfdi58ebdbi   db_network        overlay   swarm
+```
+
+The network should be created as an attachable overlay network if it doesn't exist:
+
+```bash
+docker network create --driver overlay --attachable db_network
+```
+
+This network enables DNS resolution for database services using names like:
+- `mongo` for MongoDB
+- `mysql` for MySQL
+- `postgresql` for PostgreSQL
+
+### Step 2: Build the Image
+Build the database manager image:
+
+```bash
+docker build -t database-manager:0.1.1 .
+```
+
+### Step 3: Verify Connectivity
+Test the connection to your database service:
+
+```bash
+$ docker run --rm --network db_network database-manager:0.1.1 verify \
+    --db-type mongo \
+    --connection-string mongodb://root:root@mongo/
+✓ Connection successful!
+```
+
+### Step 4: Create Database Users
+Create users and databases with the following command:
+
+```bash
+docker run --rm --network db_network database-manager:0.1.1 create \
+    --db-type mongo \
+    --connection-string mongodb://root:root@mongo/ \
+    --username appuser \
+    --password mypassword
+```
+

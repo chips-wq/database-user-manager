@@ -18,9 +18,22 @@ COPY . .
 # Install the project itself
 RUN uv sync
 
-# Define the command to run the application
-CMD ["uv", "run", "main.py"]
+# Explain what entrypoint does
+
+# ENTRYPOINT is used to specify the command that will run when the container starts
+# You can't override the ENTRYPOINT command when running the container
+# Unless you do so by specifying the --entrypoint flag when running the container
+# docker run --entrypoint <command> <image_name> <arg1> <arg2> <arg3> ... <argN>
+# You shouldn't do this unless you know what you're doing
+ENTRYPOINT [ "uv", "run", "manager.py" ]
+
+# CMD is used to specify the default arguments that will be passed to the ENTRYPOINT
+# You can override the CMD arguments when running the container with 
+# docker run <image_name> <arg1> <arg2> <arg3> ... <argN>
+CMD ["--help"]
 
 # In order to run the script with arguments use the following command
-# docker run -it <image_name> <arg1> <arg2> <arg3> ... <argN>
+# docker run --network db_network <image_name> <arg1> <arg2> <arg3> ... <argN>
+
+# You can check connections to different databases by doing
 
