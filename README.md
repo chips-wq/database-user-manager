@@ -25,7 +25,7 @@ A command-line utility for idempotent database user and access management.
 
 - ✅ MongoDB
 - ✅ MySQL
-- 🔄 PostgreSQL (coming soon)
+- ✅ PostgreSQL
 
 ## Usage
 

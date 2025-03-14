@@ -2,11 +2,13 @@ from typing import Dict, Type
 from databases.base import DatabaseStrategy
 from databases.mongodb_strategy import MongoDBStrategy
 from databases.mysql_strategy import MySQLStrategy
+from databases.postgresql_strategy import PostgreSQLStrategy
 
 class DatabaseFactory:
     _strategies: Dict[str, Type[DatabaseStrategy]] = {
         "mongo": MongoDBStrategy,
-        "mysql": MySQLStrategy
+        "mysql": MySQLStrategy,
+        "postgresql": PostgreSQLStrategy
     }
 
     @classmethod
