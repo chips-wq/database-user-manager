@@ -1,0 +1,30 @@
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  publish-github-package:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Docker image
+        uses: docker/build-push-action@v6.9.0
+        with:
+          context: ./
+          push: true
+          tags: |
+            ghcr.io/chips-wq/database-user-manager:latest
+            ghcr.io/chips-wq/database-user-manager:${{ github.sha }}
