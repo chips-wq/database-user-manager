@@ -79,7 +79,7 @@ class MongoDBStrategy(DatabaseStrategy):
 
     def get_connection_string(self, username: str, password: str) -> str:
         return (f"mongodb://{username}:{password}@"
-                f"{self.config.host}:{self.config.port}")
+                f"{self.config.host}:{self.config.port}?authSource=admin")
 
     def _generate_db_name(self, username: str) -> str:
         return f"db_{username}"
