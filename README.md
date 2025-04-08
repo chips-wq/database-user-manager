@@ -107,28 +107,26 @@ This network enables DNS resolution for database services using names like:
 - `mysql` for MySQL
 - `postgresql` for PostgreSQL
 
-### Step 2: Build the Image
-Build the database manager image:
-
-```bash
-docker build -t database-manager:0.1.1 .
-```
-
-### Step 3: Verify Connectivity
+### Step 2: Verify Connectivity
 Test the connection to your database service:
 
 ```bash
-$ docker run --rm --network db_network database-manager:0.1.1 verify \
+$ docker run --rm --network db_network ghcr.io/chips-wq/database-user-manager:latest  verify \
     --db-type mongo \
     --connection-string mongodb://root:root@mongo/
+
+$ docker run --rm --network db_network ghcr.io/chips-wq/database-user-manager:latest verify \
+    --db-type mongo \
+    --connection-string mongodb://root:root@mongo/
+
 ✓ Connection successful!
 ```
 
-### Step 4: Create Database Users
+### Step 3: Create Database Users
 Create users and databases with the following command:
 
 ```bash
-docker run --rm --network db_network database-manager:0.1.1 create \
+docker run --rm --network db_network ghcr.io/chips-wq/database-user-manager:latest create \
     --db-type mongo \
     --connection-string mongodb://root:root@mongo/ \
     --username appuser \
