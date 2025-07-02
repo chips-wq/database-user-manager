@@ -78,8 +78,9 @@ class MongoDBStrategy(DatabaseStrategy):
             raise Exception(f"Failed to ensure user: {str(e)}")
 
     def get_connection_string(self, username: str, password: str) -> str:
+        db_name = self._generate_db_name(username)
         return (f"mongodb://{username}:{password}@"
-                f"{self.config.host}:{self.config.port}?authSource=admin")
+                f"{self.config.host}:{self.config.port}/{db_name}?authSource=admin")
 
     def _generate_db_name(self, username: str) -> str:
         return f"db_{username}"
