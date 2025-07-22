@@ -115,9 +115,9 @@ $ docker run --rm --network db_network ghcr.io/chips-wq/database-user-manager:la
     --db-type mongo \
     --connection-string mongodb://root:root@mongo/
 
-$ docker run --rm --network db_network ghcr.io/chips-wq/database-user-manager:latest verify \
-    --db-type mongo \
-    --connection-string mongodb://root:root@mongo/
+$ docker run --rm --network db_network ghcr.io/chips-wq/database-user-manager:latest  verify \
+    --db-type postgresql \
+    --connection-string postgresql://postgres:root@postgresql/
 
 ✓ Connection successful!
 ```
